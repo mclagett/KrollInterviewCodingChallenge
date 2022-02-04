@@ -20,7 +20,7 @@ namespace Interview.Models
         public static void Configure(ILogger logger)
         { _logger = logger; }
 
-        private static Dictionary<int, Post> Posts
+        public static Dictionary<int, Post> Posts
         {
             get
             {

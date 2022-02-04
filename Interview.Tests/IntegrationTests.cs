@@ -714,6 +714,7 @@ namespace Interview.Tests
 
             List<Post> postsToInclude = DeriveSuntReportPostList();
             var repository = new PostRepository();
+            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
             var sut = new PostsController(mockLogger.Object, repository);
 
             // act
