@@ -44,7 +44,7 @@ namespace Interview.Tests
             Post mockPost = JsonConvert.DeserializeObject<Post>(mockPostValue);
 
             var mockRepository = new Mock<IPostRepository>();
-            mockRepository.Setup(m => m.GetPost(It.IsAny<int>())).Returns(mockPost);
+            mockRepository.Setup(m => m.GetPost(It.IsAny<int>(), false)).Returns(mockPost);
             var sut = new PostsController(mockLogger.Object, mockRepository.Object);
             int id = 50;
 
@@ -52,8 +52,8 @@ namespace Interview.Tests
             var result = sut.Get(id);
 
             // assert
-            Assert.Equal(id, result.id);
-            Assert.Contains("repellendus qui recusandae", result.title);
+            Assert.Equal(id, result.Data.id);
+            Assert.Contains("repellendus qui recusandae", result.Data.title);
         }
 
         private List<Post> DeriveSuntReportPostList()
