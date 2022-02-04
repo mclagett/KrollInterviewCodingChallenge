@@ -11,6 +11,7 @@ namespace Interview.Models
     public class PostRepository : IPostRepository
     {
         public static Dictionary<int, Post> _posts = null;
+        public static List<Post> _suntPosts = null;
 
         private static ILogger _logger = null;
 
@@ -19,7 +20,7 @@ namespace Interview.Models
         public static void Configure(ILogger logger)
         { _logger = logger; }
 
-        public static Dictionary<int, Post> Posts
+        private static Dictionary<int, Post> Posts
         {
             get
             {
@@ -29,35 +30,17 @@ namespace Interview.Models
             }
         }
 
-        private static void PopulatePostCollection()
+        private static List<Post> SuntPosts
         {
-            var client = new HttpClient();
-
-            _logger.Information($"About to fill cache with all posts");
-            var response = client.GetAsync($"https://jsonplaceholder.typicode.com/posts").Result;
-
-            try
+            get
             {
-                response.EnsureSuccessStatusCode();
+                if (_suntPosts == null)
+                    PopulateStuntPostList();
+                return _suntPosts;
             }
-            catch (Exception e)
-            {
-                _logger.Error(e, e.Message);
-            }
-
-            _posts = response.Content.ReadFromJsonAsync<IEnumerable<Post>>().Result.ToDictionary(r => r.id);
-
-            _logger.Information($"Filled cache");
         }
 
-        public Post GetPost(int id)
-        {
-            _logger.Information("This is a test");
-            var post = Posts[id];
-            return post;
-        }
-
-        public List<Post> GetSuntPosts()
+        private static List<Post> PopulateStuntPostList()
         {
             // Posts with "sunt" in body or title should be in the report
             // Posts with "eius" in body or title should be in the report
@@ -93,6 +76,52 @@ namespace Interview.Models
                 .ToList();
 
             return postsToInclude;
+        }
+
+        private static void PopulatePostCollection()
+        {
+            var client = new HttpClient();
+
+            _logger.Information($"About to fill cache with all posts");
+            var response = client.GetAsync($"https://jsonplaceholder.typicode.com/posts").Result;
+
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, e.Message);
+            }
+
+            _posts = response.Content.ReadFromJsonAsync<IEnumerable<Post>>().Result.ToDictionary(r => r.id);
+
+            _logger.Information($"Filled cache");
+        }
+
+        public Post GetPost(int id, bool refresh = false)
+        {
+            _logger.Information("Returning single post for requested id");
+
+            if (refresh && _posts != null )
+            {
+                _posts.Clear();
+                _posts = null;
+            }
+            var post = Posts[id];
+            return post;
+        }
+
+        public List<Post> GetSuntPosts(bool refresh = false)
+        {
+            _logger.Information("Returning cached sunt report");
+
+            if (refresh && _suntPosts != null)
+            {
+                _suntPosts.Clear();
+                _suntPosts = null;
+            }
+            return SuntPosts;
         }
     }
 }
