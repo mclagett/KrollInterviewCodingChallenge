@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Interview
 {
@@ -13,6 +14,10 @@ namespace Interview
     {
         public static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.File("Interviewlogs.txt", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
             CreateHostBuilder(args).Build().Run();
         }
 

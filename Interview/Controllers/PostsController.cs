@@ -4,18 +4,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Interview.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Interview.Controllers
 {
-    public class Post
-    {
-        public int userId { get; set; }
-        public int id { get; set; }
-        public string title { get; set; }
-        public string body { get; set; }
-    }
-    
     [ApiController]
     [Route("[controller]")]
     public class PostsController : ControllerBase
@@ -31,26 +24,26 @@ namespace Interview.Controllers
                 Console.WriteLine($"Retrieving from cache for id: {id}");
                 return Cache[id];
             }
-            
+
             var client = new HttpClient();
-            
+
             Console.WriteLine($"About to fill cache with all posts");
             var response = await client.GetAsync($"https://jsonplaceholder.typicode.com/posts");
-            
+
             response.EnsureSuccessStatusCode();
-            
+
             var posts = await response.Content.ReadFromJsonAsync<IEnumerable<Post>>();
 
             foreach (var post in posts)
             {
                 Cache.Add(post.id, post);
             }
-            
+
             Console.WriteLine($"Filled cache");
-            
+
             return Cache[id];
         }
-        
+
         // Posts with "sunt" in body or title should be in the report
         // Posts with "eius" in body or title should be in the report
         // Posts with "voluptatibus" or "voluptatem" in the title - and "facilis" or "nihil" in the body should show up LAST in the report
@@ -61,11 +54,11 @@ namespace Interview.Controllers
         public IEnumerable<Post> AllWithSunt()
         {
             List<Post> volupList = new();
-            
+
             if (!Cache.Any())
             {
                 var client = new HttpClient();
-            
+
                 Console.WriteLine($"About to fill cache with all posts");
                 var response = client.GetAsync($"https://jsonplaceholder.typicode.com/posts").Result;
 
@@ -77,17 +70,17 @@ namespace Interview.Controllers
                 {
                     Console.WriteLine(e);
                 }
-            
+
                 var posts = response.Content.ReadFromJsonAsync<IEnumerable<Post>>().Result;
 
                 foreach (var post in posts)
                 {
                     Cache.Add(post.id, post);
                 }
-                
+
                 Console.WriteLine($"Filled cache");
             }
-            
+
             if (!_suntCache.Any())
             {
                 Console.WriteLine($"Filling SuntCache");
@@ -97,36 +90,48 @@ namespace Interview.Controllers
                     if (postItem.Value.title.Contains("sunt") || postItem.Value.body.Contains("sunt"))
                     {
                         _suntCache.Add(postItem.Value);
-                        
-                        if (postItem.Value.userId == 9 || postItem.Value.userId == 1) 
+
+                        if (postItem.Value.userId == 9 || postItem.Value.userId == 8 || postItem.Value.userId == 1)
                         {
-                            if(postItem.Value.id != 1)
+                            if (postItem.Value.id != 1)
                                 _suntCache.Remove(postItem.Value);
                         }
                     }
-                    
+
                     if (postItem.Value.title.Contains("eius") || postItem.Value.body.Contains("eius"))
                     {
                         _suntCache.Add(postItem.Value);
-                        
-                        if (postItem.Value.userId == 9 || postItem.Value.userId == 1) 
+
+                        if (postItem.Value.userId == 9 || postItem.Value.userId == 8 || postItem.Value.userId == 1)
                         {
-                            if(postItem.Value.id != 1)
+                            if (postItem.Value.id != 1)
                                 _suntCache.Remove(postItem.Value);
                         }
                     }
-                    
-                    if (postItem.Value.title.Contains("voluptatibus") || postItem.Value.body.Contains("voluptatem"))
+
+                    if (postItem.Value.title.Contains("voluptatibus") || postItem.Value.title.Contains("voluptatem"))
                     {
-                        if(postItem.Value.body.Contains("facilis") || postItem.Value.body.Contains("nihil"))
+                        if (postItem.Value.body.Contains("facilis") || postItem.Value.body.Contains("nihil"))
                             volupList.Add(postItem.Value);
+
+                        if (postItem.Value.userId == 9 || postItem.Value.userId == 8 || postItem.Value.userId == 1)
+                        {
+                            if (postItem.Value.id != 1)
+                                volupList.Remove(postItem.Value);
+                        }
                     }
                 }
             }
 
             _suntCache.AddRange(volupList);
-            
-            return _suntCache;
+
+            // remove any duplicates that have come from multiple rules
+            var _suntCacheDistinct = 
+                _suntCache
+                .GroupBy(p => p.id)
+                .Select(g => g.First());
+
+            return _suntCacheDistinct;
         }
     }
 }
