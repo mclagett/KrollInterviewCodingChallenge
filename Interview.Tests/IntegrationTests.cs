@@ -43,9 +43,9 @@ namespace Interview.Tests
   }";
             Post mockPost = JsonConvert.DeserializeObject<Post>(mockPostValue);
 
-            var mockRepository = new Mock<IPostRepository>();
-            mockRepository.Setup(m => m.GetPost(It.IsAny<int>(), false)).Returns(mockPost);
-            var sut = new PostsController(mockLogger.Object, mockRepository.Object);
+            var repository = new PostRepository();
+            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
+            var sut = new PostsController(mockLogger.Object, repository);
             int id = 50;
 
             // act
