@@ -7,22 +7,44 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Events;
 
 namespace Interview
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
-                .WriteTo.File("Interviewlogs.txt", rollingInterval: RollingInterval.Day)
-                .CreateLogger();
-            CreateHostBuilder(args).Build().Run();
+              .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+              .Enrich.FromLogContext()
+              .WriteTo.File("Interviewlogs.txt", rollingInterval: RollingInterval.Day)
+              .CreateLogger();
+
+            try
+            {
+                Log.Information("Starting web host");
+                CreateHostBuilder(args).Build().Run();
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+                return 1;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+            .UseSerilog()
+                .ConfigureWebHostDefaults(webBuilder => 
+                    {
+                        webBuilder.UseStartup<Startup>();
+                    });
+                
     }
 }
