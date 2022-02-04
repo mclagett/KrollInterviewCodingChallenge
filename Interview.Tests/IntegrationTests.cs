@@ -235,15 +235,15 @@ namespace Interview.Tests
 
             List<Post> postsToInclude = DeriveSuntReportPostList();
             var mockRepository = new Mock<IPostRepository>();
-            mockRepository.Setup(m => m.GetSuntPosts()).Returns(postsToInclude);
+            mockRepository.Setup(m => m.GetSuntPosts(It.IsAny<bool>())).Returns(postsToInclude);
             var sut = new PostsController(mockLogger.Object, mockRepository.Object );
 
             // act
             var result = sut.AllWithSunt();
 
             // assert
-            Assert.Equal(postsToInclude.Count(), result.Count());
-            Assert.True(result.All(p => postsToInclude.Select(pi => pi.id).Contains(p.id)));
+            Assert.Equal(postsToInclude.Count(), result.Data.Count());
+            Assert.True(result.Data.All(p => postsToInclude.Select(pi => pi.id).Contains(p.id)));
         }
 
        [Fact] 
@@ -254,21 +254,21 @@ namespace Interview.Tests
 
             List<Post> postsToInclude = DeriveSuntReportPostList();
             var mockRepository = new Mock<IPostRepository>();
-            mockRepository.Setup(m => m.GetSuntPosts()).Returns(postsToInclude);
+            mockRepository.Setup(m => m.GetSuntPosts(It.IsAny<bool>())).Returns(postsToInclude);
             var sut = new PostsController(mockLogger.Object, mockRepository.Object);
 
             // act
             var result = sut.AllWithSunt();
 
             // assert
-            Assert.Equal(postsToInclude.Count(), result.Count());
+            Assert.Equal(postsToInclude.Count(), result.Data.Count());
 
             Func<Post,bool> predicate =
                 (p => (p.title.Contains("voluptatibus") || p.title.Contains("voluptatem")) &&
                       (p.body.Contains("facilis") || p.body.Contains("nihil")));
 
             // ensure all "voluptatibus"/"voluptatem" entries are at the end
-            Assert.Empty(result
+            Assert.Empty(result.Data
                         .Reverse()
                         .SkipWhile(predicate )
                         .TakeWhile(predicate));
