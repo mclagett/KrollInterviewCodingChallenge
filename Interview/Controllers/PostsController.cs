@@ -24,19 +24,35 @@ namespace Interview.Controllers
         }
 
         [HttpGet]
-        public Post Get(int id)
+        public APIResponse<Post> Get(int id)
         {
             logger.Information("Controller getting single Post from repository");
-            return postRepository.GetPost(id);
+            var fetchedPost = postRepository.GetPost(id);
+
+            var apiResponse =  new APIResponse<Post>() 
+            { Success = (fetchedPost != null) ? true : false,
+              Message = (fetchedPost == null) ? "Could not retrieve requested Post" : "",
+              Data = fetchedPost
+            };
+
+            return apiResponse;
         }
 
         [HttpGet]
         [Route("MakeReport")]
-        public IEnumerable<Post> AllWithSunt()
+        public APIResponse<IEnumerable<Post>> AllWithSunt()
         {
             logger.Information("Controller getting Sunt report from repository");
             var suntPosts = postRepository.GetSuntPosts();
-            return suntPosts;
+
+            var apiResponse = new APIResponse<IEnumerable<Post>>()
+            {
+                Success = (suntPosts != null) ? true : false,
+                Message = (suntPosts == null) ? "Unable to generate requested report" : "",
+                Data = suntPosts
+            };
+
+            return apiResponse;
         }
     }
 }
