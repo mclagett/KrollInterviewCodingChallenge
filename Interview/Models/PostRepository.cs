@@ -10,8 +10,8 @@ namespace Interview.Models
 {
     public class PostRepository : IPostRepository
     {
-        public static Dictionary<int, Post> _posts = null;
-        public static List<Post> _suntPosts = null;
+        public static Dictionary<int, Post> _posts = new Dictionary<int, Post>();
+        public static List<Post> _suntPosts = new List<Post>();
 
         private static ILogger _logger = null;
 
@@ -24,9 +24,13 @@ namespace Interview.Models
         {
             get
             {
-                if (_posts == null)
+                if (_posts.Count == 0)
                     PopulatePostCollection();
                 return _posts;
+            }
+            set
+            {
+                _posts = value;
             }
         }
 
@@ -34,7 +38,7 @@ namespace Interview.Models
         {
             get
             {
-                if (_suntPosts == null)
+                if (_suntPosts.Count == 0)
                     PopulateSuntPostList();
                 return _suntPosts;
             }
@@ -111,10 +115,10 @@ namespace Interview.Models
         {
             _logger.Information("Returning single post for requested id");
 
-            if (refresh && _posts != null )
+            if (refresh && _posts.Count > 0 )
             {
                 _posts.Clear();
-                _posts = null;
+                _posts = new Dictionary<int, Post>();
             }
             var post = Posts[id];
             return post;
@@ -124,10 +128,10 @@ namespace Interview.Models
         {
             _logger.Information("Returning cached sunt report");
 
-            if (refresh && _suntPosts != null)
+            if (refresh && _suntPosts.Count > 0)
             {
                 _suntPosts.Clear();
-                _suntPosts = null;
+                _suntPosts = new List<Post>();
             }
             return SuntPosts;
         }
