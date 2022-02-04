@@ -695,6 +695,7 @@ namespace Interview.Tests
             // by default the Props property should be null, so the sut will go initialize the Posts collection
             List<Post> postsToInclude = DeriveSuntReportPostList();
             var repository = new PostRepository();
+            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
             var sut = new PostsController(mockLogger.Object, repository);
 
             // act
