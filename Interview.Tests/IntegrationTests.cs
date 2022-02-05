@@ -704,6 +704,7 @@ namespace Interview.Tests
             // assert
             Assert.Equal(postsToInclude.Count(), result.Data.Count());
             Assert.True(result.Data.All(p => postsToInclude.Select(pi => pi.id).Contains(p.id)));
+            Assert.True(result.Data.Skip(1).All(p => (p.id != 1 && p.id != 8 && p.id != 9)));
         }
 
        [Fact] 
