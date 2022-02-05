@@ -116,10 +116,8 @@ namespace Interview.Models
             _logger.Information("Returning single post for requested id");
 
             if (refresh && _posts.Count > 0 )
-            {
                 _posts.Clear();
-                _posts = new Dictionary<int, Post>();
-            }
+
             var post = Posts[id];
             return post;
         }
@@ -129,10 +127,8 @@ namespace Interview.Models
             _logger.Information("Returning cached sunt report");
 
             if (refresh && _suntPosts.Count > 0)
-            {
                 _suntPosts.Clear();
-                _suntPosts = new List<Post>();
-            }
+
             return SuntPosts;
         }
     }
