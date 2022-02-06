@@ -20,7 +20,7 @@ namespace Interview.Models
         public static void Configure(ILogger logger)
         { _logger = logger; }
 
-        internal static Dictionary<int, Post> Posts
+        public static Dictionary<int, Post> Posts
         {
             get
             {
@@ -28,13 +28,13 @@ namespace Interview.Models
                     PopulatePostCollection();
                 return _posts;
             }
-            set
+            internal set
             {
                 _posts = value;
             }
         }
 
-        internal static List<Post> SuntPosts
+        public static List<Post> SuntPosts
         {
             get
             {
@@ -42,7 +42,7 @@ namespace Interview.Models
                     PopulateSuntPostList();
                 return _suntPosts;
             }
-            set
+            internal set
             {
                 _suntPosts = value;
             }
