@@ -20,7 +20,7 @@ namespace Interview.Models
         public static void Configure(ILogger logger)
         { _logger = logger; }
 
-        public static Dictionary<int, Post> Posts
+        internal static Dictionary<int, Post> Posts
         {
             get
             {
@@ -34,13 +34,17 @@ namespace Interview.Models
             }
         }
 
-        private static List<Post> SuntPosts
+        internal static List<Post> SuntPosts
         {
             get
             {
                 if (_suntPosts.Count == 0)
                     PopulateSuntPostList();
                 return _suntPosts;
+            }
+            set
+            {
+                _suntPosts = value;
             }
         }
 
@@ -118,7 +122,17 @@ namespace Interview.Models
             if (refresh && _posts.Count > 0 )
                 _posts.Clear();
 
-            var post = Posts[id];
+            Post post = null;
+
+            try
+            {
+                post = Posts[id];
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, e.Message);
+            }
+
             return post;
         }
 
@@ -129,7 +143,18 @@ namespace Interview.Models
             if (refresh && _suntPosts.Count > 0)
                 _suntPosts.Clear();
 
-            return SuntPosts;
+            List<Post> suntPosts = null;
+
+            try
+            {
+                suntPosts = SuntPosts;
+            }
+            catch(Exception e)
+            {
+                _logger.Error(e, e.Message);
+            }
+
+            return suntPosts;
         }
     }
 }

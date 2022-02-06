@@ -27,35 +27,6 @@ namespace Interview.Tests
             } 
         }
 
-        //[Theory]
-        //[MemberData(nameof(TestIds))]
-        [Fact]
-        public void CanFetchIndividualPostSuccessfully()
-        {
-            // arrange
-            var mockLogger = new Mock<Serilog.ILogger>();
-
-            string mockPostValue = @"{
-    ""userId"": 5,
-    ""id"": 50,
-    ""title"": ""repellendus qui recusandae incidunt voluptates tenetur qui omnis exercitationem"",
-    ""body"": ""error suscipit maxime adipisci consequuntur recusandae\nvoluptas eligendi et est et voluptates\nquia distinctio ab amet quaerat molestiae et vitae\nadipisci impedit sequi nesciunt quis consectetur""
-  }";
-            Post mockPost = JsonConvert.DeserializeObject<Post>(mockPostValue);
-
-            var repository = new PostRepository();
-            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
-            var sut = new PostsController(mockLogger.Object, repository);
-            int id = 50;
-
-            // act
-            var result = sut.Get(id);
-
-            // assert
-            Assert.Equal(id, result.Data.id);
-            Assert.Contains("repellendus qui recusandae", result.Data.title);
-        }
-
         private List<Post> GetRequestedIds(int[] requestedIds = null)
         {
             var mockPostsJson = @"
@@ -664,7 +635,8 @@ namespace Interview.Tests
             var mockPosts = JsonConvert.DeserializeObject<IEnumerable<Post>>(mockPostsJson);
 
             if (requestedIds != null)
-                mockPosts = mockPosts.Where(p => requestedIds.Contains(p.id));
+                mockPosts = 
+                    mockPosts.Take(1).Concat(mockPosts.Skip(1).Where(p => requestedIds.Contains(p.id)));
 
             return mockPosts.ToList();
         }
@@ -682,6 +654,76 @@ namespace Interview.Tests
             return postsToInclude;
         }
 
+        //[Theory]
+        //[MemberData(nameof(TestIds))]
+        [Fact]
+        public void CanFetchIndividualPostSuccessfully()
+        {
+            // arrange
+            var mockLogger = new Mock<Serilog.ILogger>();
+            PostRepository.Configure(mockLogger.Object);
+
+            string mockPostValue = @"{
+    ""userId"": 5,
+    ""id"": 50,
+    ""title"": ""repellendus qui recusandae incidunt voluptates tenetur qui omnis exercitationem"",
+    ""body"": ""error suscipit maxime adipisci consequuntur recusandae\nvoluptas eligendi et est et voluptates\nquia distinctio ab amet quaerat molestiae et vitae\nadipisci impedit sequi nesciunt quis consectetur""
+  }";
+            Post mockPost = JsonConvert.DeserializeObject<Post>(mockPostValue);
+
+            var repository = new PostRepository();
+            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
+            var sut = new PostsController(mockLogger.Object, repository);
+            int id = 50;
+
+            // act
+            var result = sut.Get(id);
+
+            // assert
+            Assert.Equal(id, result.Data.id);
+            Assert.Contains("repellendus qui recusandae", result.Data.title);
+        }
+
+        [Fact]
+        public void InvalidIdReturnsProperResponse()
+        {
+            // arrange
+            var mockLogger = new Mock<Serilog.ILogger>();
+            PostRepository.Configure(mockLogger.Object);
+
+            var repository = new PostRepository();
+            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
+            var sut = new PostsController(mockLogger.Object, repository);
+            int id = -50;
+
+            // act
+            var result = sut.Get(id);
+
+            // assert
+            Assert.Null(result.Data);
+            Assert.Contains("Could not retrieve requested Post", result.Message);
+        }
+
+
+        [Fact]
+        public void InvalidIdSuntPostCollectionReturnsProperResponse()
+        {
+            // arrange
+            var mockLogger = new Mock<Serilog.ILogger>();
+            PostRepository.Configure(mockLogger.Object);
+
+            var repository = new PostRepository();
+            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
+            PostRepository.SuntPosts = null;
+            var sut = new PostsController(mockLogger.Object, repository);
+
+            // act
+            var result = sut.AllWithSunt();
+
+            // assert
+            Assert.Null(result.Data);
+            Assert.Contains("Unable to generate requested report", result.Message);
+        }
         [Fact]
         // temporary test just to support initial refactorings
         // temporarily uses application to fetch data, so not good long-term test
