@@ -636,7 +636,7 @@ namespace Interview.Tests
 
             if (requestedIds != null)
                 mockPosts = 
-                    mockPosts.Take(1).Concat(mockPosts.Skip(1).Where(p => requestedIds.Contains(p.id)));
+                    mockPosts.Where(p => requestedIds.Contains(p.id));
 
             return mockPosts.ToList();
         }
@@ -654,6 +654,13 @@ namespace Interview.Tests
             return postsToInclude;
         }
 
+        private Post GetPostWithID50()
+        {
+            var postsToInclude = GetRequestedIds(new int[] { 50 });
+
+            return postsToInclude.First();
+        }
+
         //[Theory]
         //[MemberData(nameof(TestIds))]
         [Fact]
@@ -661,15 +668,11 @@ namespace Interview.Tests
         {
             // arrange
             var mockLogger = new Mock<Serilog.ILogger>();
-            PostRepository.Configure(mockLogger.Object);
+            var mockPostDataRetriever = new Mock<IRetrievePostData>();
+            mockPostDataRetriever.Setup(m => m.GetAllPosts()).Returns(GetAllPosts());
+            PostRepository.Configure(mockLogger.Object, mockPostDataRetriever.Object);
 
-            string mockPostValue = @"{
-    ""userId"": 5,
-    ""id"": 50,
-    ""title"": ""repellendus qui recusandae incidunt voluptates tenetur qui omnis exercitationem"",
-    ""body"": ""error suscipit maxime adipisci consequuntur recusandae\nvoluptas eligendi et est et voluptates\nquia distinctio ab amet quaerat molestiae et vitae\nadipisci impedit sequi nesciunt quis consectetur""
-  }";
-            Post mockPost = JsonConvert.DeserializeObject<Post>(mockPostValue);
+            Post mockPost = GetPostWithID50();
 
             var repository = new PostRepository();
             PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
@@ -681,15 +684,17 @@ namespace Interview.Tests
 
             // assert
             Assert.Equal(id, result.Data.id);
-            Assert.Contains("repellendus qui recusandae", result.Data.title);
+            Assert.Contains(mockPost.title, result.Data.title);
         }
-
+        
         [Fact]
         public void InvalidIdReturnsProperResponse()
         {
             // arrange
             var mockLogger = new Mock<Serilog.ILogger>();
-            PostRepository.Configure(mockLogger.Object);
+            var mockPostDataRetriever = new Mock<IRetrievePostData>();
+            mockPostDataRetriever.Setup(m => m.GetAllPosts()).Returns(GetAllPosts());
+            PostRepository.Configure(mockLogger.Object, mockPostDataRetriever.Object);
 
             var repository = new PostRepository();
             PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
@@ -704,13 +709,14 @@ namespace Interview.Tests
             Assert.Contains("Could not retrieve requested Post", result.Message);
         }
 
-
         [Fact]
         public void InvalidIdSuntPostCollectionReturnsProperResponse()
         {
             // arrange
             var mockLogger = new Mock<Serilog.ILogger>();
-            PostRepository.Configure(mockLogger.Object);
+            var mockPostDataRetriever = new Mock<IRetrievePostData>();
+            mockPostDataRetriever.Setup(m => m.GetAllPosts()).Returns(GetAllPosts());
+            PostRepository.Configure(mockLogger.Object, mockPostDataRetriever.Object);
 
             var repository = new PostRepository();
             PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
@@ -724,6 +730,29 @@ namespace Interview.Tests
             Assert.Null(result.Data);
             Assert.Contains("Unable to generate requested report", result.Message);
         }
+
+        [Fact]
+        public void RepositoryFetchesDataSuessfullyFromWebService()
+        {
+            // arrange
+            var mockLogger = new Mock<Serilog.ILogger>();
+            var postDataRetriever = new RetrievePostData();
+            PostRepository.Configure(mockLogger.Object, postDataRetriever);
+
+            // by default the Props property should be null, so the sut will go initialize the Posts collection
+            List<Post> postsToInclude = DeriveSuntReportPostList();
+            var repository = new PostRepository();
+            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
+            var sut = new PostsController(mockLogger.Object, repository);
+
+            // act
+            var result = sut.AllWithSunt();
+
+            // assert
+            Assert.Equal(postsToInclude.Count(), result.Data.Count());
+            Assert.True(result.Data.All(p => postsToInclude.Select(pi => pi.id).Contains(p.id)));
+        }
+
         [Fact]
         // temporary test just to support initial refactorings
         // temporarily uses application to fetch data, so not good long-term test
@@ -732,7 +761,9 @@ namespace Interview.Tests
         { 
             // arrange
             var mockLogger = new Mock<Serilog.ILogger>();
-            PostRepository.Configure(mockLogger.Object);
+            var mockPostDataRetriever = new Mock<IRetrievePostData>();
+            mockPostDataRetriever.Setup(m => m.GetAllPosts()).Returns(GetAllPosts());
+            PostRepository.Configure(mockLogger.Object, mockPostDataRetriever.Object);
 
             // by default the Props property should be null, so the sut will go initialize the Posts collection
             List<Post> postsToInclude = DeriveSuntReportPostList();
@@ -754,7 +785,9 @@ namespace Interview.Tests
         {
             // arrange
             var mockLogger = new Mock<Serilog.ILogger>();
-            PostRepository.Configure(mockLogger.Object);
+            var mockPostDataRetriever = new Mock<IRetrievePostData>();
+            mockPostDataRetriever.Setup(m => m.GetAllPosts()).Returns(GetAllPosts());
+            PostRepository.Configure(mockLogger.Object, mockPostDataRetriever.Object);
 
             List<Post> postsToInclude = DeriveSuntReportPostList();
             var repository = new PostRepository();

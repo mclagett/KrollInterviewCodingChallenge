@@ -23,6 +23,7 @@ namespace Interview
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Interview", Version = "v1"}); });
             services.AddSingleton<IPostRepository, PostRepository>();
+            services.AddSingleton<IRetrievePostData, RetrievePostData>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -43,7 +44,8 @@ namespace Interview
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
             // need to do DI here to do it at static class level of PostRepository
-            PostRepository.Configure(app.ApplicationServices.GetService<Serilog.ILogger>());
+            PostRepository.Configure(app.ApplicationServices.GetService<Serilog.ILogger>(),
+                                     app.ApplicationServices.GetService<IRetrievePostData>());
         }
     }
 }

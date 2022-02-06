@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
 using Serilog;
 
 namespace Interview.Models
@@ -14,11 +11,15 @@ namespace Interview.Models
         public static List<Post> _suntPosts = new List<Post>();
 
         private static ILogger _logger = null;
+        private static IRetrievePostData _dataRetriever = null;
 
         // have to use a Configure method because can't use static constructor for DI
         // this is called in Startup.Configure
-        public static void Configure(ILogger logger)
-        { _logger = logger; }
+        public static void Configure(ILogger logger, IRetrievePostData dataRetriever)
+        { 
+            _logger = logger;
+            _dataRetriever = dataRetriever;
+        }
 
         public static Dictionary<int, Post> Posts
         {
@@ -97,22 +98,18 @@ namespace Interview.Models
 
         private static void PopulatePostCollection()
         {
-            _posts = new Dictionary<int,Post>();
-            var client = new HttpClient();
-
-            _logger.Information($"About to fill cache with all posts");
-            var response = client.GetAsync($"https://jsonplaceholder.typicode.com/posts").Result;
+            Dictionary<int,Post> posts = new Dictionary<int, Post>();
 
             try
             {
-                response.EnsureSuccessStatusCode();
-                _posts = response.Content.ReadFromJsonAsync<IEnumerable<Post>>().Result.ToDictionary(r => r.id);
+                posts = _dataRetriever.GetAllPosts().ToDictionary(p => p.id);
                 _logger.Information($"Filled cache");
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 _logger.Error(e, e.Message);
             }
+
         }
 
         public Post GetPost(int id, bool refresh = false)
