@@ -98,11 +98,9 @@ namespace Interview.Models
 
         private static void PopulatePostCollection()
         {
-            Dictionary<int,Post> posts = new Dictionary<int, Post>();
-
             try
             {
-                posts = _dataRetriever.GetAllPosts().ToDictionary(p => p.id);
+                _posts = _dataRetriever.GetAllPosts().ToDictionary(p => p.id);
                 _logger.Information($"Filled cache");
             }
             catch(Exception e)

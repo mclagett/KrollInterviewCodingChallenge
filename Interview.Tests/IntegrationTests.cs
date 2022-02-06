@@ -675,7 +675,6 @@ namespace Interview.Tests
             Post mockPost = GetPostWithID50();
 
             var repository = new PostRepository();
-            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
             var sut = new PostsController(mockLogger.Object, repository);
             int id = 50;
 
@@ -697,7 +696,6 @@ namespace Interview.Tests
             PostRepository.Configure(mockLogger.Object, mockPostDataRetriever.Object);
 
             var repository = new PostRepository();
-            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
             var sut = new PostsController(mockLogger.Object, repository);
             int id = -50;
 
@@ -719,7 +717,6 @@ namespace Interview.Tests
             PostRepository.Configure(mockLogger.Object, mockPostDataRetriever.Object);
 
             var repository = new PostRepository();
-            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
             PostRepository.SuntPosts = null;
             var sut = new PostsController(mockLogger.Object, repository);
 
@@ -742,7 +739,6 @@ namespace Interview.Tests
             // by default the Props property should be null, so the sut will go initialize the Posts collection
             List<Post> postsToInclude = DeriveSuntReportPostList();
             var repository = new PostRepository();
-            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
             var sut = new PostsController(mockLogger.Object, repository);
 
             // act
@@ -768,7 +764,6 @@ namespace Interview.Tests
             // by default the Props property should be null, so the sut will go initialize the Posts collection
             List<Post> postsToInclude = DeriveSuntReportPostList();
             var repository = new PostRepository();
-            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
             var sut = new PostsController(mockLogger.Object, repository);
 
             // act
@@ -791,7 +786,6 @@ namespace Interview.Tests
 
             List<Post> postsToInclude = DeriveSuntReportPostList();
             var repository = new PostRepository();
-            PostRepository.Posts = GetAllPosts().ToDictionary(p => p.id);
             var sut = new PostsController(mockLogger.Object, repository);
 
             // act
